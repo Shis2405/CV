@@ -37,6 +37,23 @@
     pointer-events:none;
     z-index:0;
   }
+  #cursor-glow{
+    position:fixed;
+    top:0;left:0;
+    width:420px;height:420px;
+    border-radius:50%;
+    background:radial-gradient(circle, rgba(78,232,166,0.10), rgba(78,232,166,0.035) 40%, transparent 70%);
+    pointer-events:none;
+    transform:translate(-50%,-50%);
+    z-index:1;
+    opacity:0;
+    transition:opacity .3s ease;
+    will-change:transform;
+  }
+  #cursor-glow.active{opacity:1;}
+  @media (hover:none), (pointer:coarse){
+    #cursor-glow{display:none;}
+  }
   .wrap{max-width:960px;margin:0 auto;padding:0 24px;position:relative;z-index:1;}
   a{color:inherit;text-decoration:none;}
   .mono{font-family:var(--mono);}
@@ -216,6 +233,8 @@
 </style>
 </head>
 <body>
+
+<div id="cursor-glow"></div>
 
 <header>
   <div class="wrap">
@@ -405,6 +424,23 @@
 </footer>
 
 <script>
+  // Cursor-following glow (skipped on touch devices via CSS media query)
+  (function(){
+    const glow = document.getElementById('cursor-glow');
+    if(!glow) return;
+    let raf = null, mx = 0, my = 0;
+    window.addEventListener('mousemove', (e)=>{
+      mx = e.clientX; my = e.clientY;
+      glow.classList.add('active');
+      if(raf) return;
+      raf = requestAnimationFrame(()=>{
+        glow.style.transform = `translate(${mx}px, ${my}px) translate(-50%, -50%)`;
+        raf = null;
+      });
+    }, {passive:true});
+    window.addEventListener('mouseleave', ()=> glow.classList.remove('active'));
+  })();
+
   // Scroll reveal
   const revealEls = document.querySelectorAll('.reveal');
   const io = new IntersectionObserver((entries)=>{
